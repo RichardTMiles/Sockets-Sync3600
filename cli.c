@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+
 void error(const char *msg) {
     perror(msg);
     exit(0);
@@ -19,7 +20,7 @@ void error(const char *msg) {
 
 int main(int argc, char *argv[]) {
 
-    char buffer[1024];                /* Buffer for messages to others. */
+    char data[1024];                /* data for messages to others. */
     int ServerSocket;          /* This end of connection*/
     int portNumber;
 
@@ -38,65 +39,39 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    if ((ServerSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("socket");
-        exit(1);
-    }
+    if ((ServerSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) { perror("socket"); exit(1); }
 
     /* Create the address of the server. */
     portNumber = atoi(argv[2]);
-    if ((server = gethostbyname(argv[1])) == NULL) {
-        fprintf(stderr, "ERROR, no such host\n");
-        exit(0);
-    }
+    
+    if ((server = gethostbyname(argv[1])) == NULL) { fprintf(stderr, "ERROR, no such host\n"); exit(0); }
+    
     bzero((char *) &ServerStructure, sizeof(ServerStructure));
     ServerStructure.sin_family = AF_INET;
     bcopy((char *) server->h_addr, (char *) &ServerStructure.sin_addr.s_addr, server->h_length);
     ServerStructure.sin_port = htons(portNumber);
 
     /*Connect to the server.*/
-    if (connect(ServerSocket, (struct sockaddr *) &ServerStructure, sizeof(ServerStructure)) < 0) {
-        perror("connect");
-        exit(1);
-    }
-
+    if (connect(ServerSocket, (struct sockaddr *) &ServerStructure, sizeof(ServerStructure)) < 0) { perror("connect"); exit(1); }
 
     EOFileArray = ServerSocket + 1;
-    while (1) {
-        /* Set up polling. */
-        FD_ZERO(&FileArray);
-        FD_SET(ServerSocket, &FileArray);
-        FD_SET(0, &FileArray);
+    
+    for (;;) {
 
         /* Wait for some input. */
-        SocketsReady = select(EOFileArray, &FileArray, (fd_set *) 0, (fd_set *) 0, (struct timeval *) 0);
+        fprintf("Enter CLIENT 2 Data: %s \n", (int) data);
+        bytesRead = read(0, data, sizeof(data));
+        send(ServerSocket, data, bytesRead, 0);
+        if (bytesRead < 1) { close(ServerSocket); exit(0); }
 
-        /* If either device has some input,
-           read it and copy it to the other. */
-
-        if (FD_ISSET(ServerSocket, &FileArray)) {
-            bytesRead = recv(ServerSocket, buffer, sizeof(buffer), 0);
-
-            /* If error or eof, terminate. */
-            if (bytesRead < 1) {
-                close(ServerSocket);
-                exit(0);
-            }
-            // write to stdout = 1 ; the buffer; # bites
-            write(1, buffer, bytesRead);
-        }
-
-        if (FD_ISSET(0, &FileArray)) {
-            bytesRead = read(0, buffer, sizeof(buffer));
-
-            /* If error or eof, terminate. */
-            if (bytesRead < 1) {
-                close(ServerSocket);
-                exit(0);
-            }
-            send(ServerSocket, buffer, bytesRead, 0);
-        }
+        
+        /* Wait for server */
+        bytesRead = recv(ServerSocket, data, sizeof(data), 0);
+        if (bytesRead < 1) { close(ServerSocket); exit(0); }
+        fprintf("SERVER Total: %s ", (int) data);
+        // write(1, data, bytesRead);
+    
     }
-
 }
+
 
