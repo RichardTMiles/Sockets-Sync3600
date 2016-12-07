@@ -17,7 +17,8 @@ In this assignment, you will write a complete C program to support a client/serv
        o A user will manually enter integer values at each client that will be sent to the server. The server, in response to this integer    value, will send the client a current total so that the client is aware of the most up-to-date “census” total.
 
        o Each client will continuously monitor the CPU usage of its machine and if the CPU usage reaches or surpasses a threshold value specified by the user, the client will (1) send the sum of the integer values sent by the other client to the other client, and then (2) disconnect from the server. The remaining “active” client may continue sending its own integer values to the server.
-o A client may voluntarily “quit” sending integer values to the server when the user manually enters a 0 for its integer value (whereupon the client will disconnect from the server).
+
+       o A client may voluntarily “quit” sending integer values to the server when the user manually enters a 0 for its integer value (whereupon the client will disconnect from the server).
 
 
 #
