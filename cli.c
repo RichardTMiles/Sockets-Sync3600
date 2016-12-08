@@ -52,12 +52,16 @@ int main(int argc, char *argv[]) {
     int conv;                       //converter to a single digit
     int c = 13;                     //counter starting at the spot in the command string where pid goes
     int maxuse;                     //maximum allowable cpu usage
+    int leadingzero = 1;            //make shift bool to deal with leading zeroes
 
     //filling out pid of command string
     while(ipid > 0)
     {
         conv = ipid / power(10, i);
-        command[c] = conv + 48;
+        if(!(conv == 0 && leadingzero)) {
+          command[c] = conv + 48;
+          leadingzero = 0;
+        }
         ipid -= conv * power(10, i);
         i--;
         c++;
@@ -99,6 +103,7 @@ int main(int argc, char *argv[]) {
     int total = 0;
     while (1) {
 
+        printf("%s\n\n", command);
         //check current cpu usage
         fp = popen(command, "r");
         if (fp == NULL) {
@@ -107,17 +112,24 @@ int main(int argc, char *argv[]) {
         }
         else if (fgets(path, sizeof(path) - 1, fp) != NULL) {
             cpusage = atoi(&path[0]);
-            printf("usage: %d\n", cpusage);
-            //if(cpusage > maxuse) {
+            if(cpusage > maxuse) {
                 /**********************************************
                   insert cpu overusage stuf here
                 ***********************************************/
-            //}
+            }
         }
 
         /* Wait for some input. */
         printf("Enter CLIENT 2 Data: ");
         scanf("%s", data);
+        if(data[0] == '0')
+        {
+            printf("Goodbye\n");
+            shutdown(ServerSocket, SHUT_RDWR);
+            close(ServerSocket);
+            //exit(0);
+        }
+
         bytesRead = sizeof(data);
         send(ServerSocket, data, (size_t) bytesRead, 0);
         if (bytesRead < 1) { close(ServerSocket); exit(0); }
@@ -132,5 +144,3 @@ int main(int argc, char *argv[]) {
     
     }
 }
-
-
